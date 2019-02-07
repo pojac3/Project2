@@ -35,7 +35,7 @@ public:
     };
     //sets the column
     void setCol(int c);
-    //gets the value of this SparseRow
+    //gets the value of thsis SparseRow
     int getValue() {
         return value;
     };
