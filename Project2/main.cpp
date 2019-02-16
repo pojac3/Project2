@@ -84,9 +84,9 @@ protected:
 public:SparseMatrix();
     SparseMatrix (int n, int m, int cv, int noNSV); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
     ~SparseMatrix(); //destructor that will deep delete the array
-    SparseMatrix*Transpose (); //Transposes the matrix
-    SparseMatrix*Multiply (SparseMatrix& M); //Multiplies two matrices together
-    SparseMatrix*Add (SparseMatrix& M); //Adds two matrices together
+    SparseMatrix *operator! (); //Transposes the matrix
+    SparseMatrix *operator* (SparseMatrix& M); //Multiplies two matrices together
+    SparseMatrix *operator+ (SparseMatrix& M); //Adds two matrices together
     void display();//Display the sparse matrix
     void displayMatrix (); //Display the matrix in its original format
     void setSparseRow(int index, int r, int c,int v); //allows the user to change full rows at a time within the SparseMatrix
@@ -180,7 +180,7 @@ void SparseRow::display() {
 };
 
 //transposes the matrix
-SparseMatrix* SparseMatrix::Transpose() {
+SparseMatrix* SparseMatrix::operator!() {
     
     //stores the temporary row, column and value inside of each iteration of the for loop below
     int r, c, v;
@@ -205,7 +205,7 @@ SparseMatrix* SparseMatrix::Transpose() {
 };
 
 //multiplies two matrices together
-SparseMatrix* SparseMatrix::Multiply(SparseMatrix &M) {
+SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
     
     //the SparseMatrix to be returned
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue,0);
@@ -279,7 +279,16 @@ SparseMatrix* SparseMatrix::Multiply(SparseMatrix &M) {
 };
 
 //adds two matrices together
-SparseMatrix* SparseMatrix::Add(SparseMatrix &M) {
+SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
+    /*
+    try {
+        if ((this->noRows != M.noRows) || (this->noCols != M.noCols)) {
+            throw 10;
+        }
+    } catch (int x) {
+        
+    }
+    */
     //creating a copy of the array
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue,0);
     
@@ -450,16 +459,16 @@ int main () {
     cout << "Second one in normal matrix format" << endl;
     (*secondOne).displayMatrix();
     cout << "After Transpose first one in normal format" << endl;
-    temp = (*firstOne).Transpose();
+    temp = !*firstOne;
     (*temp).displayMatrix();
     cout << "After Transpose second one in normal format" << endl;
-    temp = (*secondOne).Transpose();
+    temp = !*secondOne;
     (*temp).displayMatrix();
     cout << "Multiplication of matrices in sparse matrix form:" << endl;
-    temp = (*secondOne).Multiply(*firstOne);
+    temp = *secondOne * *firstOne;
     (*temp).display();
     cout << "Addition of matrices in sparse matrix form:" << endl;
-    temp = (*secondOne).Add(*firstOne);
+    temp = *secondOne + *firstOne;
     (*temp).display();
     
     return 0;
