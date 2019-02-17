@@ -21,7 +21,7 @@ protected:
 public:
     SparseRow (); //default constructor;row=-1;col=-1;value=0
     SparseRow(int i, int r, int c, int v); //regular constructor: r = row, c = column, v = value
-    void display();// print Row#, Column#, value in the following format: "<r> <c> <v>"
+    friend ostream &operator << (ostream& output,SparseRow& M);// print Row#, Column#, value in the following format: "<r> <c> <v>"
     
     //simply returns a row
     int getRow() {
@@ -87,7 +87,7 @@ public:SparseMatrix();
     SparseMatrix *operator! (); //Transposes the matrix
     SparseMatrix *operator* (SparseMatrix& M); //Multiplies two matrices together
     SparseMatrix *operator+ (SparseMatrix& M); //Adds two matrices together
-    void display();//Display the sparse matrix
+    friend ostream &operator << (ostream& output,SparseMatrix& M);//Display the sparse matrix
     void displayMatrix (); //Display the matrix in its original format
     void setSparseRow(int index, int r, int c,int v); //allows the user to change full rows at a time within the SparseMatrix
     SparseRow getSparseRow(int c); //returns the SparseRow stored at index c in myMatrix
@@ -175,8 +175,9 @@ bool SparseMatrix::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
 };
 
 //displays the single SparseRow in the following format: "<row> <col> <value>" and and endline
-void SparseRow::display() {
-    cout << this->getRow() << " " << this->getCol() << " " << this->getValue() << endl;
+ostream &operator << (ostream &output, SparseRow &M) {
+    output << M.getRow() << " " << M.getCol() << " " << M.getValue() << endl;
+    return output;
 };
 
 //transposes the matrix
@@ -360,10 +361,12 @@ SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
 };
 
 //display method in SparseMatrix format. simply loops through myMatrix and calls display on each entry
-void SparseMatrix::display() {
-    for (int i = 0; i < this->noNonSparseValues; i++) {
-        this->getSparseRow(i).display();
+ostream& operator << (ostream& output, SparseMatrix& M) {
+    
+    for (int i = 0; i < M.noNonSparseValues; i++) {
+        output << M.myMatrix[i];
     }
+    return output;
 };
 
 //method to display the matrix in its original format
@@ -451,11 +454,11 @@ int main () {
     
     //Statements to manipulate and print matrices
     cout << "First one in sparse matrix format" << endl;
-    (*firstOne).display();
+    cout << (*firstOne);
     cout << "First one in normal matrix format" << endl;
     (*firstOne).displayMatrix();
     cout << "Second one in sparse matrix format" << endl;
-    (*secondOne).display();
+    cout << (*secondOne);
     cout << "Second one in normal matrix format" << endl;
     (*secondOne).displayMatrix();
     cout << "After Transpose first one in normal format" << endl;
@@ -466,10 +469,10 @@ int main () {
     (*temp).displayMatrix();
     cout << "Multiplication of matrices in sparse matrix form:" << endl;
     temp = *secondOne * *firstOne;
-    (*temp).display();
+    cout << (*temp);
     cout << "Addition of matrices in sparse matrix form:" << endl;
     temp = *secondOne + *firstOne;
-    (*temp).display();
+    cout << (*temp);
     
     return 0;
     
