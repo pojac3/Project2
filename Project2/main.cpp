@@ -48,10 +48,10 @@ protected:
     int noRows; //Number of rows of the original matrix
     int noCols; //Number of columns of the original matrix
     int commonValue; //common value of this SparseMatrix
-    int noNonSparseValues; //number of non sparse values in this SparseMatrix object
+    int noNonSparseValues; //number of non sparse values in this SparseMatrix object. DEPRECATED
     vector<SparseRow> myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
 public:SparseMatrix();
-    SparseMatrix (int n, int m, int cv, int noNSV); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
+    SparseMatrix (int n, int m, int cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
     ~SparseMatrix(); //destructor that will deep delete the array
     SparseMatrix *operator! (); //Transposes the matrix
     SparseMatrix *operator* (SparseMatrix& M); //Multiplies two matrices together
@@ -86,11 +86,11 @@ SparseRow::SparseRow() {
 };
 
 //default constructor for SparseMatrix. takes in the number of rows and columns, the commonValue and the number of nonSparseValues, and initializes myMatrix
-SparseMatrix::SparseMatrix (int n, int m, int cv, int noNSV) {
+SparseMatrix::SparseMatrix (int n, int m, int cv) {
     noRows = n;
     noCols = m;
     commonValue = cv;
-    noNonSparseValues = noNSV;
+    noNonSparseValues = NULL;
 };
 
 //default constructor for myMatrix. initializes noRows, noCols, commonValue and noNonSparseValues to 0, and leaves myMatrix pointing to the null pointer
@@ -98,7 +98,7 @@ SparseMatrix::SparseMatrix () {
     noRows = 0;
     noCols = 0;
     commonValue = 0;
-    noNonSparseValues = 0;
+    noNonSparseValues = NULL;
 };
 
 /*
@@ -116,23 +116,13 @@ SparseRow SparseMatrix::getSparseRow(int c) {
 
 //returns a SparseRow with row r and column c, returns a default SparseRow if that does not exists. This should only be called when it has already been confirmed that one exists
 SparseRow SparseMatrix::getSparseRow(int r, int c) {
-    for (int i = 0; i < noNonSparseValues; i++) {
+    for (int i = 0; i < this->myMatrix.size(); i++) {
         if (myMatrix[i].getCol() == c && myMatrix[i].getRow() == r) {
             return myMatrix[i];
         }
     }
     cout << "No NSV with Row " << r << "and Column" << c << endl;
     return SparseRow();
-};
-
-//boolean function that returns true if there is a non sparse value at row r and column c
-bool SparseMatrix::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
-    for (int i = 0; i < noNonSparseValues; i++) {
-        if (this->getSparseRow(i).getRow() == r && this->getSparseRow(i).getCol() == c) {
-            return true;
-        }
-    }
-    return false;
 };
 
 //gets the row# from this SparseRow
@@ -195,6 +185,20 @@ void SparseRow::setIndex(int i) {
 };
 
 /*
+ * H E L P E R  M E T H O D S ====================================================== H E L P E R  M E T H O D S
+ */
+
+//boolean function that returns true if there is a non sparse value at row r and column c
+bool SparseMatrix::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
+    for (int i = 0; i < this->myMatrix.size(); i++) {
+        if (this->getSparseRow(i).getRow() == r && this->getSparseRow(i).getCol() == c) {
+            return true;
+        }
+    }
+    return false;
+};
+
+/*
  *  O T H E R ==================================================================================== O T H E R
  */
 
@@ -250,7 +254,7 @@ SparseMatrix* SparseMatrix::operator!() {
     int r, c, v;
     
     //temp SparseMatrix object for return
-    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue,noNonSparseValues);
+    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
     /*
     //this for loop initializes each SparseRow in myMatrix before use to make sure there is room for them
@@ -260,7 +264,7 @@ SparseMatrix* SparseMatrix::operator!() {
      */
     
     //main for loop of this function. loops through all of the values in myMatrix and switches the row and column value
-    for (int i = 0; i < noNonSparseValues; i++) {
+    for (int i = 0; i < this->myMatrix.size(); i++) {
         r = this->myMatrix[i].getRow();
         c = this->myMatrix[i].getCol();
         v = this->myMatrix[i].getValue();
@@ -274,7 +278,7 @@ SparseMatrix* SparseMatrix::operator!() {
 SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
     
     //the SparseMatrix to be returned
-    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue,0);
+    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
     //instantiating some variables
     int firstOneRow, firstOneCol, secondOneRow, secondOneCol, current, firstOneValue, secondOneValue, index;
@@ -319,13 +323,6 @@ SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
         //checking to see if anything was added up and adding it to copy if so
         if (current != 0) {
             (*copy).myMatrix.push_back(SparseRow(i, firstOneRow, secondOneCol, current));
-            (*copy).noNonSparseValues++;
-            /*
-            (*copy).myMatrix[index].setCol(secondOneCol);
-            (*copy).myMatrix[index].setRow(firstOneRow);
-            (*copy).myMatrix[index].setValue(current);
-            (*copy).noNonSparseValues++;
-             */
             
             //also incrementing the index and resetting current
             index++;
@@ -350,80 +347,37 @@ SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
 
 //adds two matrices together
 SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
-    /*
-    try {
-        if ((this->noRows != M.noRows) || (this->noCols != M.noCols)) {
-            throw 10;
-        }
-    } catch (int x) {
-        
-    }
-    */
     //creating a copy of the array
-    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue,0);
+    SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
-    //starting values for the while loop and the value to be added once it is found
-    int i = 0, j, valueToAdd;
+    //the current row and col
+    int currentRow = 0;
+    int currentCol = 0;
+    int index = 0;
     
-    //whether the value has been found or not
-    bool found;
-    
-    //boolean array so we dont have to instantiate a new bool every time
-    bool* mArray = new bool[M.noNonSparseValues];
-    
-    //initializing all values in mArray
-    for (int k=0; k < M.noNonSparseValues; k++) {
-        mArray[k] = false;
-    }
-    
-    //main while loop. loops through all non sparse values
-    while (i < noNonSparseValues) {
-        
-        //reset j to 0 and found to false each iteration
-        j = 0;
-        found = false;
-        
-        //sets the row and column of the new one before its found
-        (*copy).myMatrix[(*copy).noNonSparseValues].setRow(myMatrix[i].getRow());
-        (*copy).myMatrix[(*copy).noNonSparseValues].setCol(myMatrix[i].getCol());
-        
-        //resetting valueToAdd
-        valueToAdd = 0;
-        
-        //iterates through until either the value is found or we have gone through every entry in myMatrix
-        while ((j < M.noNonSparseValues) && (!found)) {
-            
-            //checking the rows and columns of both matrices to see if they match,
-            if ((myMatrix[i].getRow() == M.myMatrix[j].getRow()) &&
-                (myMatrix[i].getCol() == M.myMatrix[j].getCol()) ) {
-                
-                //and if they do, then we set found to true, the value to valueToAdd, and also switch mArray[j] to true
-                found = true;
-                valueToAdd = M.myMatrix[j].getValue();
-                mArray[j] = true;
-                
-            }
-            //otherwise just keep going
-            else j++;
+    for (int i = 0; i < noCols*noRows; i++) {
+        int sum = 0;
+        if (this->ifThereExistsANonSparseVariableAtRowCol(currentRow, currentCol)) {
+            sum += this->getSparseRow(currentRow, currentCol).getValue();
+        }
+        if (M.ifThereExistsANonSparseVariableAtRowCol(currentRow, currentCol)) {
+            sum += M.getSparseRow(currentRow, currentCol).getValue();
+        }
+        if (sum != commonValue) {
+            copy->myMatrix.push_back(SparseRow(index,currentRow,currentCol,sum));
+            index++;
         }
         
-        //check to make sure that the two values dont equal the commonValue, otherwise we'll skip it
-        if (myMatrix[i].getValue() + valueToAdd != commonValue) {
-            (*copy).myMatrix[(*copy).noNonSparseValues++].setValue(myMatrix[i].getValue() + valueToAdd);
+        //end of row/col checks
+        if (currentCol < noCols) {
+            currentCol++;
         }
-        
-        //increment i
-        i++;
+        if (currentCol >= noCols) {
+            currentCol = 0;
+            currentRow++;
+        }
     }
     
-    //adds the values to the copy's myMatrix
-    for (int k=0; k < M.noNonSparseValues; k++) {
-        if (!mArray[k]) {
-            (*copy).myMatrix[(*copy).noNonSparseValues].setRow(myMatrix[k].getRow());
-            (*copy).myMatrix[(*copy).noNonSparseValues].setCol(myMatrix[k].getCol());
-            (*copy).myMatrix[(*copy).noNonSparseValues++].setValue(myMatrix[k].getValue());
-        }
-    }
     
     //returning the copy
     return copy;
@@ -432,7 +386,7 @@ SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
 //display method in SparseMatrix format. simply loops through myMatrix and calls display on each entry
 ostream& operator << (ostream& output, SparseMatrix& M) {
     
-    for (int i = 0; i < M.noNonSparseValues; i++) {
+    for (int i = 0; i < M.myMatrix.size(); i++) {
         output << M.myMatrix[i];
     }
     return output;
@@ -457,7 +411,7 @@ int main () {
     cin >> n >> m >> cv >> noNSV;
     
     //initializing the first SparseMatrix with the values entered by the user
-    SparseMatrix* firstOne = new SparseMatrix(n, m, cv, noNSV);
+    SparseMatrix* firstOne = new SparseMatrix(n, m, cv);
     
     //this nested loop takes the input from the user and automatically assigns the row and column value of each
     for (int i = 0; i < n; i++) {
@@ -480,7 +434,7 @@ int main () {
     cin >> n >> m >> cv >> noNSV;
     index = 0;
     
-    SparseMatrix* secondOne = new SparseMatrix(n, m, cv, noNSV);
+    SparseMatrix* secondOne = new SparseMatrix(n, m, cv);
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
             cin >> value;
