@@ -11,27 +11,32 @@
 using namespace std;
 
 /*
- * C L A S S  D E C L A R A T I O N S ============================================================== C  L A S S  D E C L A R A T I O N S
- *
+ * C L A S S  D E C L A R A T I O N S ============================================================== C L A S S  D E C L A R A T I O N S
+ */
+
+/*
  *SparseRow Class. contains 4 integers: row, col, value and index (DEPRECATED), which stores the row, column, value and index of a SparseMatrix object
  *This class is meant to be used in an array, where multiple SparseRow objects can be stored to represent a full matrix without having to store common values
  */
+
+template<class DT>
 class SparseRow {
+    template<class DS>
+    friend ostream &operator << (ostream& output,SparseRow<DS>& M);// print Row#, Column#, value in the following format: "<r> <c> <v>"
 protected:
     int row;//Row#
     int col;//Column#
-    int value;//We will assume that all our values will be integers
+    DT value;//We will assume that all our values will be integers
     int index;//The index at which this SparseRow is stored in the array. THIS IS DEPRECATED AND IS NO LONGER USEFUL
 public:
     SparseRow (); //default constructor;row=-1;col=-1;value=0
-    SparseRow(int i, int r, int c, int v); //regular constructor: r = row, c = column, v = value
-    friend ostream &operator << (ostream& output,SparseRow& M);// print Row#, Column#, value in the following format: "<r> <c> <v>"
+    SparseRow(int i, int r, int c, DT v); //regular constructor: r = row, c = column, v = value
     int getRow(); //gets the row
     void setRow(int r); //sets the row
     int getCol(); //gets the column
     void setCol(int c); //sets the column
-    int getValue(); //gets the value of thsis SparseRow
-    void setValue(int v); //sets the value of this SparseRow
+    DT getValue(); //gets the value of thsis SparseRow
+    void setValue(DT v); //sets the value of this SparseRow
     int getIndex(); //gets the index of this SparseRow
     void setIndex(int i); //sets the index of this SparseRow
 };
@@ -43,33 +48,36 @@ public:
  *matrix. It achieves this by not storing any common values
  */
 
+template <class DT>
 class SparseMatrix {
+    template<class DS>
+    friend ostream &operator << (ostream& output,SparseMatrix<DS>& M);//Display the sparse matrix
 protected:
     int noRows; //Number of rows of the original matrix
     int noCols; //Number of columns of the original matrix
-    int commonValue; //common value of this SparseMatrix
+    DT commonValue; //common value of this SparseMatrix
     int noNonSparseValues; //number of non sparse values in this SparseMatrix object. DEPRECATED
-    vector<SparseRow> myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
+    vector<SparseRow<DT>> myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
 public:SparseMatrix();
-    SparseMatrix (int n, int m, int cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
+    SparseMatrix (int n, int m, DT cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
     ~SparseMatrix(); //destructor that will deep delete the array
     SparseMatrix *operator! (); //Transposes the matrix
-    SparseMatrix *operator* (SparseMatrix& M); //Multiplies two matrices together
-    SparseMatrix *operator+ (SparseMatrix& M); //Adds two matrices together
-    friend ostream &operator << (ostream& output,SparseMatrix& M);//Display the sparse matrix
+    SparseMatrix *operator* (SparseMatrix<DT>& M); //Multiplies two matrices together
+    SparseMatrix *operator+ (SparseMatrix<DT>& M); //Adds two matrices together
     void displayMatrix (); //Display the matrix in its original format
-    void setSparseRow(int index, int r, int c,int v); //allows the user to change full rows at a time within the SparseMatrix
-    SparseRow getSparseRow(int c); //returns the SparseRow stored at index c in myMatrix
+    void setSparseRow(int index, int r, int c, DT v); //allows the user to change full rows at a time within the SparseMatrix
+    SparseRow<DT> getSparseRow(int c); //returns the SparseRow stored at index c in myMatrix
     bool ifThereExistsANonSparseVariableAtRowCol(int r, int c);
-    SparseRow getSparseRow(int r, int c); //method to get a SparseRow with the specified row and column
+    SparseRow<DT> getSparseRow(int r, int c); //method to get a SparseRow with the specified row and column
 };
 
 /*
- * C  O N S T R U C T O R S ============================================================== C O N S T R U C T O R S
+ * C  O N S T R U C T O R S ======================================================================================================================= C O N S T R U C T O R S
  */
 
 //SparseRow regular constructor, takes in r, c, v and i and sets them equal to the appropriate values
-SparseRow::SparseRow(int i, int r, int c, int v) {
+template<class DT>
+SparseRow<DT>::SparseRow(int i, int r, int c, DT v) {
     this->setCol(c);
     this->setRow(r);
     this->setValue(v);
@@ -78,23 +86,26 @@ SparseRow::SparseRow(int i, int r, int c, int v) {
 
 //SparseRow default Constructor, defaults row and col to -1, defaults the value to 0 and index to NULL
 //Generally, if a SparseRow object contains a value of 0 or an index of NULL, then there is a bug in the software
-SparseRow::SparseRow() {
+template <class DT>
+SparseRow<DT>::SparseRow() {
     this->setCol(-1);
     this->setRow(-1);
     this->setValue(0);
     this->setIndex(NULL);
 };
 
-//default constructor for SparseMatrix. takes in the number of rows and columns, the commonValue and the number of nonSparseValues, and initializes myMatrix
-SparseMatrix::SparseMatrix (int n, int m, int cv) {
+//regular constructor for SparseMatrix. takes in the number of rows and columns, the commonValue and the number of nonSparseValues, and initializes myMatrix
+template <class DT>
+SparseMatrix<DT>::SparseMatrix (int n, int m, DT cv) {
     noRows = n;
     noCols = m;
     commonValue = cv;
     noNonSparseValues = NULL;
 };
 
-//default constructor for myMatrix. initializes noRows, noCols, commonValue and noNonSparseValues to 0, and leaves myMatrix pointing to the null pointer
-SparseMatrix::SparseMatrix () {
+//default constructor for SparseMatrix. initializes noRows, noCols, commonValue and noNonSparseValues to 0, and leaves myMatrix pointing to the null pointer
+template <class DT>
+SparseMatrix<DT>::SparseMatrix () {
     noRows = 0;
     noCols = 0;
     commonValue = 0;
@@ -102,94 +113,100 @@ SparseMatrix::SparseMatrix () {
 };
 
 /*
- * D E S T R U C T O R S ================================================================= D E S T R U C T O R S
+ * D E S T R U C T O R S ======================================================================================================================== D E S T R U C T O R S
  */
 
 /*
- * G E T T E R S ================================================================================= G E T T E R S
+ * G E T T E R S ======================================================================================================================================= G E T T E R S
  */
 
 //simply returns the SparseRow object stored at index c in myMatrix
-SparseRow SparseMatrix::getSparseRow(int c) {
+template <class DT>
+SparseRow<DT> SparseMatrix<DT>::getSparseRow(int c) {
     return this->myMatrix[c];
 };
 
 //returns a SparseRow with row r and column c, returns a default SparseRow if that does not exists. This should only be called when it has already been confirmed that one exists
-SparseRow SparseMatrix::getSparseRow(int r, int c) {
+template <class DT>
+SparseRow<DT> SparseMatrix<DT>::getSparseRow(int r, int c) {
     for (int i = 0; i < this->myMatrix.size(); i++) {
         if (myMatrix[i].getCol() == c && myMatrix[i].getRow() == r) {
             return myMatrix[i];
         }
     }
     cout << "No NSV with Row " << r << "and Column" << c << endl;
-    return SparseRow();
+    return SparseRow<DT>();
 };
 
 //gets the row# from this SparseRow
-int SparseRow::getRow() {
+template <class DT>
+int SparseRow<DT>::getRow() {
     return row;
 };
 
 //gets the col# from this SparseRow
-int SparseRow::getCol() {
+template <class DT>
+int SparseRow<DT>::getCol() {
     return col;
 };
 
 //gets the value from this SparseRow
-int SparseRow::getValue() {
+template <class DT>
+DT SparseRow<DT>::getValue() {
     return value;
 };
 
 //gets the index# from this SparseRow
-int SparseRow::getIndex() {
+template <class DT>
+int SparseRow<DT>::getIndex() {
     return index;
 };
 
 
 /*
- * S E T T E R S ================================================================================= S E T T E R S
+ * S E T T E R S =============================================================================================================================== S E T T E R S
  */
 
 /* allows the user to essentially just set a new row in myMatrix. becuase of the way that memory allocation works
  * with arrays and the new operator, it is possible to create new objects of the myMatrix array that are out of
  * bounds of what the user originally set as the size of myMatrix. nsv can basically be set to any number
  */
-void SparseMatrix::setSparseRow(int index, int r, int c, int v) {
-    this->myMatrix.push_back(SparseRow(index,r,c,v));
-    /*
-    this->myMatrix[index].setRow(r);
-    this->myMatrix[index].setCol(c);
-    this->myMatrix[index].setValue(v);
-    this->myMatrix[index].setIndex(index);
-     */
+template <class DT>
+void SparseMatrix<DT>::setSparseRow(int index, int r, int c, DT v) {
+    this->myMatrix.push_back(SparseRow<DT>(index,r,c,v));
 };
 
 //sets the value of the SparseRow
-void SparseRow::setValue(int v) {
+template <class DT>
+void SparseRow<DT>::setValue(DT v) {
     this->value = v;
 };
 
 //sets the row of the SparseRow
-void SparseRow::setRow(int r) {
+template <class DT>
+void SparseRow<DT>::setRow(int r) {
     this->row = r;
 };
 
 //sets the column of the SparseRow
-void SparseRow::setCol(int c) {
+template <class DT>
+void SparseRow<DT>::setCol(int c) {
     this->col = c;
 };
 
 //sets the index of the SparseRow
-void SparseRow::setIndex(int i) {
+template <class DT>
+void SparseRow<DT>::setIndex(int i) {
     this->index = i;
 };
 
 /*
- * H E L P E R  M E T H O D S ====================================================== H E L P E R  M E T H O D S
+ * H E L P E R  M E T H O D S ============================================================================================================ H E L P E R  M E T H O D S
  */
 
 //boolean function that returns true if there is a non sparse value at row r and column c
-bool SparseMatrix::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
+template <class DT>
+bool SparseMatrix<DT>::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
     for (int i = 0; i < this->myMatrix.size(); i++) {
         if (this->getSparseRow(i).getRow() == r && this->getSparseRow(i).getCol() == c) {
             return true;
@@ -199,11 +216,12 @@ bool SparseMatrix::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
 };
 
 /*
- *  O T H E R ==================================================================================== O T H E R
+ *  O T H E R =========================================================================================================================================== O T H E R
  */
 
 //method to display the matrix in its original format
-void SparseMatrix::displayMatrix() {
+template <class DT>
+void SparseMatrix<DT>::displayMatrix() {
     
     //the current row and column we are on
     int currentRow = 0;
@@ -238,20 +256,23 @@ void SparseMatrix::displayMatrix() {
 };
 
 /*
- * O P E R A T O R S =================================================================================  O P E R A T O R S
+ * O P E R A T O R S ========================================================================================================================================  O P E R A T O R S
  */
 
-//displays the single SparseRow in the following format: "<row> <col> <value>" and and endline
-ostream &operator << (ostream &output, SparseRow &M) {
+//displays the single SparseRow in the following format: "<row> <col> <value>" and an endline
+template <class DS>
+ostream &operator << (ostream &output, SparseRow<DS> &M) {
     output << M.getRow() << " " << M.getCol() << " " << M.getValue() << endl;
     return output;
 };
 
 //transposes the matrix
-SparseMatrix* SparseMatrix::operator!() {
+template <class DT>
+SparseMatrix<DT>* SparseMatrix<DT>::operator!() {
     
     //stores the temporary row, column and value inside of each iteration of the for loop below
-    int r, c, v;
+    int r, c;
+    DT v;
     
     //temp SparseMatrix object for return
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
@@ -275,13 +296,15 @@ SparseMatrix* SparseMatrix::operator!() {
 };
 
 //multiplies two matrices together
-SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
+template <class DT>
+SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT> &M) {
     
     //the SparseMatrix to be returned
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
     //instantiating some variables
-    int firstOneRow, firstOneCol, secondOneRow, secondOneCol, current, firstOneValue, secondOneValue, index;
+    int firstOneRow, firstOneCol, secondOneRow, secondOneCol, index;
+    DT current, firstOneValue,secondOneValue;
     
     //stores the current row and column values that will be incremented appropriately
     firstOneRow = 0;
@@ -307,7 +330,8 @@ SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
         while (firstOneCol < noCols && secondOneRow < noRows) {
             
             //if theres a non sparse variable at both current row and column values
-            if (this->ifThereExistsANonSparseVariableAtRowCol(firstOneRow, firstOneCol) && M.ifThereExistsANonSparseVariableAtRowCol(secondOneRow, secondOneCol)) {
+            if (this->ifThereExistsANonSparseVariableAtRowCol(firstOneRow, firstOneCol)
+                && M.ifThereExistsANonSparseVariableAtRowCol(secondOneRow, secondOneCol)) {
                 
                 //then sum them up!
                 firstOneValue = this->getSparseRow(firstOneRow,firstOneCol).getValue();
@@ -322,7 +346,7 @@ SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
         
         //checking to see if anything was added up and adding it to copy if so
         if (current != 0) {
-            (*copy).myMatrix.push_back(SparseRow(i, firstOneRow, secondOneCol, current));
+            (*copy).myMatrix.push_back(SparseRow<DT>(i, firstOneRow, secondOneCol, current));
             
             //also incrementing the index and resetting current
             index++;
@@ -346,7 +370,8 @@ SparseMatrix* SparseMatrix::operator*(SparseMatrix &M) {
 };
 
 //adds two matrices together
-SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
+template <class DT>
+SparseMatrix<DT>* SparseMatrix<DT>::operator+(SparseMatrix<DT> &M) {
     //creating a copy of the array
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
@@ -356,7 +381,7 @@ SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
     int index = 0;
     
     for (int i = 0; i < noCols*noRows; i++) {
-        int sum = 0;
+        DT sum = 0;
         if (this->ifThereExistsANonSparseVariableAtRowCol(currentRow, currentCol)) {
             sum += this->getSparseRow(currentRow, currentCol).getValue();
         }
@@ -364,7 +389,7 @@ SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
             sum += M.getSparseRow(currentRow, currentCol).getValue();
         }
         if (sum != commonValue) {
-            copy->myMatrix.push_back(SparseRow(index,currentRow,currentCol,sum));
+            copy->myMatrix.push_back(SparseRow<DT>(index,currentRow,currentCol,sum));
             index++;
         }
         
@@ -384,7 +409,8 @@ SparseMatrix* SparseMatrix::operator+(SparseMatrix &M) {
 };
 
 //display method in SparseMatrix format. simply loops through myMatrix and calls display on each entry
-ostream& operator << (ostream& output, SparseMatrix& M) {
+template <class DS>
+ostream& operator << (ostream& output, SparseMatrix<DS> &M) {
     
     for (int i = 0; i < M.myMatrix.size(); i++) {
         output << M.myMatrix[i];
@@ -393,7 +419,7 @@ ostream& operator << (ostream& output, SparseMatrix& M) {
 };
 
 /*
- * M A I N  F U N C T I O N =================================================================================  M A I N  F U N C T I O N
+ * M A I N  F U N C T I O N ================================================================================================================  M A I N  F U N C T I O N
  *
  * The code to insert values into the matrices is here, as well as the calls to all of the methods above
  *
@@ -401,17 +427,16 @@ ostream& operator << (ostream& output, SparseMatrix& M) {
 int main () {
     
     //initializing some variables before we use them
-    int n, m, cv, noNSV, index, value;
-    SparseMatrix* temp;
+    int n, m, cv, index, value;
+    SparseMatrix<int>* temp;
     
     //reset index to 0
     index = 0;
     
     //prompts the user for input. the program needs the number of rows and columns, the common value and the number of non sparse values
-    cin >> n >> m >> cv >> noNSV;
-    
+    cin >> n >> m >> cv;
     //initializing the first SparseMatrix with the values entered by the user
-    SparseMatrix* firstOne = new SparseMatrix(n, m, cv);
+    SparseMatrix<int>* firstOne = new SparseMatrix<int>(n, m, cv);
     
     //this nested loop takes the input from the user and automatically assigns the row and column value of each
     for (int i = 0; i < n; i++) {
@@ -428,13 +453,11 @@ int main () {
                 index++;
             }
         }
-    }
-    
-    //this process is exactly the same as the first one. please refer to the comments above
-    cin >> n >> m >> cv >> noNSV;
+    }    //this process is exactly the same as the first one. please refer to the comments above
+    cin >> n >> m >> cv;
     index = 0;
     
-    SparseMatrix* secondOne = new SparseMatrix(n, m, cv);
+    SparseMatrix<int>* secondOne = new SparseMatrix<int>(n, m, cv);
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
             cin >> value;
@@ -444,7 +467,6 @@ int main () {
             }
         }
     }
-    
     //Statements to manipulate and print matrices
     cout << "First one in sparse matrix format" << endl;
     cout << (*firstOne);
