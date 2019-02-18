@@ -31,6 +31,7 @@ protected:
 public:
     SparseRow (); //default constructor;row=-1;col=-1;value=0
     SparseRow(int i, int r, int c, DT v); //regular constructor: r = row, c = column, v = value
+    virtual ~SparseRow();
     int getRow(); //gets the row
     void setRow(int r); //sets the row
     int getCol(); //gets the column
@@ -115,6 +116,8 @@ SparseMatrix<DT>::SparseMatrix () {
 /*
  * D E S T R U C T O R S ======================================================================================================================== D E S T R U C T O R S
  */
+
+
 
 /*
  * G E T T E R S ======================================================================================================================================= G E T T E R S
@@ -216,6 +219,22 @@ bool SparseMatrix<DT>::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
 };
 
 /*
+ * E X C E P T I O N S ========================================================================================================================= E X C E P T I O N S
+ */
+
+class ExceptionAdd : public exception {
+    
+};
+
+class ExceptionMultiply : public exception {
+    
+};
+
+class ExceptionCV : public exception {
+    
+};
+
+/*
  *  O T H E R =========================================================================================================================================== O T H E R
  */
 
@@ -299,6 +318,14 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator!() {
 template <class DT>
 SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT> &M) {
     
+    //checking that the number of columns in the first matrix matches the number of rows in the second matrix
+    if (this->noCols != M.noRows) {
+        throw ExceptionMultiply();
+    }
+    if (this->commonValue != M.commonValue) {
+        throw ExceptionCV();
+    }
+    
     //the SparseMatrix to be returned
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
@@ -372,6 +399,15 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT> &M) {
 //adds two matrices together
 template <class DT>
 SparseMatrix<DT>* SparseMatrix<DT>::operator+(SparseMatrix<DT> &M) {
+    
+    //checking that the number of rows and columns match before we start adding
+    if ((this->noRows != M.noRows) || (this->noCols != M.noCols)) {
+        throw ExceptionAdd();
+    }
+    if (this->commonValue != M.commonValue) {
+        throw ExceptionCV();
+    }
+    
     //creating a copy of the array
     SparseMatrix* copy = new SparseMatrix(noRows,noCols,commonValue);
     
@@ -467,6 +503,7 @@ int main () {
             }
         }
     }
+    
     //Statements to manipulate and print matrices
     cout << "First one in sparse matrix format" << endl;
     cout << (*firstOne);
