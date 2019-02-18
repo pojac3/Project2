@@ -31,7 +31,6 @@ protected:
 public:
     SparseRow (); //default constructor;row=-1;col=-1;value=0
     SparseRow(int i, int r, int c, DT v); //regular constructor: r = row, c = column, v = value
-    virtual ~SparseRow();
     int getRow(); //gets the row
     void setRow(int r); //sets the row
     int getCol(); //gets the column
@@ -58,7 +57,7 @@ protected:
     int noCols; //Number of columns of the original matrix
     DT commonValue; //common value of this SparseMatrix
     int noNonSparseValues; //number of non sparse values in this SparseMatrix object. DEPRECATED
-    vector<SparseRow<DT>> myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
+    vector<SparseRow<DT>>* myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
 public:SparseMatrix();
     SparseMatrix (int n, int m, DT cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
     ~SparseMatrix(); //destructor that will deep delete the array
@@ -101,6 +100,7 @@ SparseMatrix<DT>::SparseMatrix (int n, int m, DT cv) {
     noRows = n;
     noCols = m;
     commonValue = cv;
+    myMatrix = new vector<SparseRow<DT>>();
     noNonSparseValues = NULL;
 };
 
@@ -126,15 +126,15 @@ SparseMatrix<DT>::SparseMatrix () {
 //simply returns the SparseRow object stored at index c in myMatrix
 template <class DT>
 SparseRow<DT> SparseMatrix<DT>::getSparseRow(int c) {
-    return this->myMatrix[c];
+    return (*myMatrix)[c];
 };
 
 //returns a SparseRow with row r and column c, returns a default SparseRow if that does not exists. This should only be called when it has already been confirmed that one exists
 template <class DT>
 SparseRow<DT> SparseMatrix<DT>::getSparseRow(int r, int c) {
-    for (int i = 0; i < this->myMatrix.size(); i++) {
-        if (myMatrix[i].getCol() == c && myMatrix[i].getRow() == r) {
-            return myMatrix[i];
+    for (int i = 0; i < (*myMatrix).size(); i++) {
+        if ((*myMatrix)[i].getCol() == c && (*myMatrix)[i].getRow() == r) {
+            return (*myMatrix)[i];
         }
     }
     cout << "No NSV with Row " << r << "and Column" << c << endl;
@@ -176,7 +176,7 @@ int SparseRow<DT>::getIndex() {
  */
 template <class DT>
 void SparseMatrix<DT>::setSparseRow(int index, int r, int c, DT v) {
-    this->myMatrix.push_back(SparseRow<DT>(index,r,c,v));
+    (*myMatrix).push_back(SparseRow<DT>(index,r,c,v));
 };
 
 //sets the value of the SparseRow
@@ -210,7 +210,7 @@ void SparseRow<DT>::setIndex(int i) {
 //boolean function that returns true if there is a non sparse value at row r and column c
 template <class DT>
 bool SparseMatrix<DT>::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
-    for (int i = 0; i < this->myMatrix.size(); i++) {
+    for (int i = 0; i < (*myMatrix).size(); i++) {
         if (this->getSparseRow(i).getRow() == r && this->getSparseRow(i).getCol() == c) {
             return true;
         }
@@ -304,10 +304,10 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator!() {
      */
     
     //main for loop of this function. loops through all of the values in myMatrix and switches the row and column value
-    for (int i = 0; i < this->myMatrix.size(); i++) {
-        r = this->myMatrix[i].getRow();
-        c = this->myMatrix[i].getCol();
-        v = this->myMatrix[i].getValue();
+    for (int i = 0; i < (*myMatrix).size(); i++) {
+        r = (*myMatrix)[i].getRow();
+        c = (*myMatrix)[i].getCol();
+        v = (*myMatrix)[i].getValue();
         copy->setSparseRow(i, c, r, v);
     }
     //returning the copy that has the switched row and column values
@@ -373,7 +373,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT> &M) {
         
         //checking to see if anything was added up and adding it to copy if so
         if (current != 0) {
-            (*copy).myMatrix.push_back(SparseRow<DT>(i, firstOneRow, secondOneCol, current));
+            copy->myMatrix->push_back(SparseRow<DT>(i, firstOneRow, secondOneCol, current));
             
             //also incrementing the index and resetting current
             index++;
@@ -425,7 +425,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator+(SparseMatrix<DT> &M) {
             sum += M.getSparseRow(currentRow, currentCol).getValue();
         }
         if (sum != commonValue) {
-            copy->myMatrix.push_back(SparseRow<DT>(index,currentRow,currentCol,sum));
+            copy->myMatrix->push_back(SparseRow<DT>(index,currentRow,currentCol,sum));
             index++;
         }
         
@@ -448,8 +448,8 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator+(SparseMatrix<DT> &M) {
 template <class DS>
 ostream& operator << (ostream& output, SparseMatrix<DS> &M) {
     
-    for (int i = 0; i < M.myMatrix.size(); i++) {
-        output << M.myMatrix[i];
+    for (int i = 0; i < M.myMatrix->size(); i++) {
+        output << M.myMatrix->at(i);
     }
     return output;
 };
