@@ -11,7 +11,7 @@
 using namespace std;
 
 /*
- * C L A S S  D E C L A R A T I O N S ============================================================== C L A S S  D E C L A R A T I O N S
+ * C L A S S  D E C L A R A T I O N S ============================================================================================= C L A S S  D E C L A R A T I O N S
  */
 
 /*
@@ -31,6 +31,7 @@ protected:
 public:
     SparseRow (); //default constructor;row=-1;col=-1;value=0
     SparseRow(int i, int r, int c, DT v); //regular constructor: r = row, c = column, v = value
+    virtual ~SparseRow();
     int getRow(); //gets the row
     void setRow(int r); //sets the row
     int getCol(); //gets the column
@@ -60,7 +61,7 @@ protected:
     vector<SparseRow<DT>>* myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
 public:SparseMatrix();
     SparseMatrix (int n, int m, DT cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
-    ~SparseMatrix(); //destructor that will deep delete the array
+    virtual ~SparseMatrix(); //destructor that will deep delete the array
     SparseMatrix *operator! (); //Transposes the matrix
     SparseMatrix *operator* (SparseMatrix<DT>& M); //Multiplies two matrices together
     SparseMatrix *operator+ (SparseMatrix<DT>& M); //Adds two matrices together
@@ -117,7 +118,15 @@ SparseMatrix<DT>::SparseMatrix () {
  * D E S T R U C T O R S ======================================================================================================================== D E S T R U C T O R S
  */
 
+template <class DT>
+SparseRow<DT>::~SparseRow() {
+    
+};
 
+template <class DT>
+SparseMatrix<DT>::~SparseMatrix() {
+    
+};
 
 /*
  * G E T T E R S ======================================================================================================================================= G E T T E R S
