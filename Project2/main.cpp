@@ -118,11 +118,13 @@ SparseMatrix<DT>::SparseMatrix () {
  * D E S T R U C T O R S ======================================================================================================================== D E S T R U C T O R S
  */
 
+//simply calls the default garbage collector
 template <class DT>
 SparseRow<DT>::~SparseRow() {
     
 };
 
+//simply calls the default garbage collector
 template <class DT>
 SparseMatrix<DT>::~SparseMatrix() {
     
@@ -183,6 +185,8 @@ int SparseRow<DT>::getIndex() {
  * with arrays and the new operator, it is possible to create new objects of the myMatrix array that are out of
  * bounds of what the user originally set as the size of myMatrix. nsv can basically be set to any number
  */
+
+//sets the sparse row at the index specified
 template <class DT>
 void SparseMatrix<DT>::setSparseRow(int index, int r, int c, DT v) {
     (*myMatrix).push_back(SparseRow<DT>(index,r,c,v));
@@ -231,14 +235,17 @@ bool SparseMatrix<DT>::ifThereExistsANonSparseVariableAtRowCol(int r, int c) {
  * E X C E P T I O N S ========================================================================================================================= E X C E P T I O N S
  */
 
+//calls the default exception class
 class ExceptionAdd : public exception {
     
 };
 
+//calls the default exception class
 class ExceptionMultiply : public exception {
     
 };
 
+//calls the default exception class
 class ExceptionCV : public exception {
     
 };
