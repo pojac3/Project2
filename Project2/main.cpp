@@ -58,7 +58,7 @@ protected:
     int noCols; //Number of columns of the original matrix
     DT commonValue; //common value of this SparseMatrix
     int noNonSparseValues; //number of non sparse values in this SparseMatrix object. DEPRECATED
-    vector<SparseRow<DT>>* myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
+    vector<SparseRow<DT> >* myMatrix; //Array of SparseRows that contains info about the points in the array that are not the common value
 public:SparseMatrix();
     SparseMatrix (int n, int m, DT cv); //regular constructor. takes in the number of rows and columns, the commonValue and the number of nonSparseValues
     virtual ~SparseMatrix(); //destructor that will deep delete the array
@@ -101,7 +101,7 @@ SparseMatrix<DT>::SparseMatrix (int n, int m, DT cv) {
     noRows = n;
     noCols = m;
     commonValue = cv;
-    myMatrix = new vector<SparseRow<DT>>();
+    myMatrix = new vector<SparseRow<DT> >();
     noNonSparseValues = NULL;
 };
 
